@@ -1,0 +1,43 @@
+body {
+    background:white;
+}
+
+.main-input {
+    width:800px;
+    margin: auto;
+}
+
+fieldset {
+    margin: 10px;
+    padding:10px 15px;
+    border: 1px outset rgb(200,200,255);
+    background-color: rgb(220,220,255);
+}
+
+label {
+    display: inline-block;
+    width:180px;
+}
+
+input {
+    margin-left:5px;
+    width: 450px;
+    display: inline-block;
+}
+
+input[type="submit"] {
+    float:right;
+    margin-top:5px;
+}
+
+input[name="summary"] {
+    width: 100%;
+}
+
+textarea {
+    width: 100%;
+}
+
+select {
+    min-width: 200px;
+}

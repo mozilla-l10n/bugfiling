@@ -1,0 +1,285 @@
+diff --git a/bugsfiled.php b/bugsfiled.php
+index d2eedc1..262d44c 100755
+--- a/bugsfiled.php
++++ b/bugsfiled.php
+@@ -16,11 +16,11 @@
+  * The Original Code is Bugzilla C3PO.
+  *
+  * The Initial Developer of the Original Code is Mozilla.
+- * 
++ *
+  * Portions created by the Initial Developer are Copyright (C) 2___
+  * the Initial Developer. All Rights Reserved.
+  *
+- * Contributor(s): Milos Dinic <milos@mozilla.com>
++ * Contributor(s): Milos Dinic <milos@mozilla.com>, Pascal Chevrel <pascal@mozilla.com>
+  *
+  * Alternatively, the contents of this file may be used under the terms of
+  * either the GNU General Public License Version 2 or later (the "GPL"), or
+@@ -35,14 +35,41 @@
+  * the terms of any one of the MPL, the GPL or the LGPL.
+  *
+  * ***** END LICENSE BLOCK ***** */
++function dashboardItem($locale, $bugnumber, $description) {
++
++    $value = <<<VALUE
++
++'{$bugnumber}'=> array(
++            '{$bugnumber}',
++            '{$description}',
++            '',
++            array('{$locale}'),
++            array('URGENT'),
++            array(''),
++            ),
++
++VALUE;
++
++    return $value;
++}
+ 
+ $time_start = microtime(true);
+- 
+-include_once "controller.inc.php";
++
++require_once 'controller.inc.php';
+ 
+ // Populate $locales var with a set of locales
+ // we want to file bugs for
+-$locales = clean_explode($_POST['locales'], ',');
++
++if(isset($_POST['all-locales'])) {
++    $locales = $full_languages;
++} elseif (isset($_POST['locales'])) {
++    $locales = clean_explode($_POST['locales'], ',');
++} else {
++    echo 'error: no locale codes';
++    exit;
++}
++
++sort($locales);
+ 
+ // Summary, or title of the bug;
+ // An locale tag in form of "[ab-CD]" will preceed it
+@@ -50,7 +77,7 @@ $bugsummary = $_POST['summary'];
+ 
+ // Login info that we'll get via POST
+ $xml_data_login = array(
+-    'login' => $_POST['username'],
++    'login'    => $_POST['username'],
+     'password' => $_POST['pwd'],
+     'remember' => 1,
+ );
+@@ -58,14 +85,14 @@ $xml_data_login = array(
+ // Data we use for bug creation
+ // All data is provided on front page
+ $xml_data_create = array (
+-    'product' => $_POST['product'],
+-    'component' => $_POST['component'],
+-    'version' => $_POST['version'],
+-    'op_sys' => 'All', // Operating system
+-    'rep_platform' => 'All', // Platform
++    'product'           => $_POST['product'],
++    'component'         => $_POST['component'],
++    'version'           => $_POST['version'],
++    'op_sys'            => 'All', // Operating system
++    'rep_platform'      => 'All', // Platform
+     'status_whiteboard' => $_POST['whiteboard'],
+-    'blocked' => $_POST['blocked'],
+-    'assigned_to' => $_POST['assign_to'],
++    'blocked'           => $_POST['blocked'],
++    'assigned_to'       => $_POST['assign_to'],
+ );
+ 
+ // Set the target for our requests
+@@ -76,10 +103,10 @@ $cookie = tempnam('', 'bugzilla-filer');
+ 
+ // Set cURL options
+ $curlopts = array(
+-    CURLOPT_URL     => $curl_target,
+-    CURLOPT_POST    => true,
++    CURLOPT_URL            => $curl_target,
++    CURLOPT_POST           => true,
+     CURLOPT_RETURNTRANSFER => true,
+-    CURLOPT_HTTPHEADER  => array( 'Content-Type: text/xml', 'charset=utf-8' )
++    CURLOPT_HTTPHEADER     => array( 'Content-Type: text/xml', 'charset=utf-8' )
+ );
+ 
+ // Initialize cURL
+@@ -89,7 +116,7 @@ curl_setopt_array($curl_start, $curlopts);
+ // Create a request based on data we got from index.php
+ $request = xmlrpc_encode_request("User.login", $xml_data_login);
+ curl_setopt($curl_start, CURLOPT_POSTFIELDS, $request);
+-curl_setopt($curl_start, CURLOPT_COOKIEJAR, $cookie); // Get the cookie from Bugzilla
++curl_setopt($curl_start, CURLOPT_COOKIEJAR,  $cookie); // Get the cookie from Bugzilla
+ 
+ $response = curl_exec($curl_start); // execute
+ $response = xmlrpc_decode($response); // Decoded response is logged-in user ID
+@@ -105,23 +132,32 @@ if (empty($response['id'])) {
+ // which means we're logged in and session has started
+ 
+ // Now we loop through all locales from a $locales var and file a bug for each one
+-foreach($locales as $key => $shortcode)
+-{
++echo '<pre>';
++
++foreach ($locales as $key => $shortcode) {
+     // This set of vars needs to be in the loop as it depends on locale code
+     $xml_data_create['bug_file_loc'] = str_replace('{{{locale}}}', $shortcode, $_POST['url']);
+-    $xml_data_create['summary'] = str_replace('{{{locale}}}', $shortcode, $_POST['summary']);
+-    $xml_data_create['description'] = str_replace('{{{locale}}}', $shortcode, $_POST['description']);
+-    
++    $xml_data_create['summary']      = str_replace('{{{locale}}}', $shortcode, $_POST['summary']);
++    $xml_data_create['description']  = str_replace('{{{locale}}}', $shortcode, $_POST['description']);
++
+     // Make the request to file a bug
+     $request = xmlrpc_encode_request("Bug.create", $xml_data_create); // create a request for filing bugs
+     curl_setopt($curl_start, CURLOPT_POSTFIELDS, $request);
+     curl_setopt($curl_start, CURLOPT_COOKIEFILE, $cookie);
+     $buglist_array_item = xmlrpc_decode(curl_exec($curl_start)); // Get the ID of the filed bug
++/*
+     echo '<br><a href="'. $bugzilla_url . 'show_bug.cgi?id=' . $buglist_array_item['id'] . '">Bug ID=' . $buglist_array_item['id'] . '</a>';
++*/
++
++    echo dashboardItem($shortcode, $buglist_array_item['id'], $xml_data_create['summary']);
+ }
+ 
++echo '</pre>';
++
+ curl_close($curl_start);
+ unlink($cookie);
+ $time_end = microtime(true);
+-$time = $time_end - $time_start;
+-echo '<div style="background: #000000; color: #FFFFFF; position: absolute; left: 50%; bottom: 0;"> Script execution time: '.$time.'</div>';
+\ No newline at end of file
++$time     = $time_end - $time_start;
++echo '<!--  Script execution time: '.$time.'  -->';
++
++
+diff --git a/controller.inc.php b/controller.inc.php
+index 14070f6..bdf54c2 100755
+--- a/controller.inc.php
++++ b/controller.inc.php
+@@ -6,6 +6,7 @@ include_once 'langconfig.php';
+ // we fetch config.cgi based on this one
+ // also, we use it to create bugs on referring installation
+ $bugzilla_url = 'https://landfill.bugzilla.org/bugzilla-3.6-branch/';
++//$bugzilla_url = 'https://bugzilla.mozilla.org/';
+ 
+ // This function explodes a string for a given separator
+ // and removes whitespaces from created array elements
+@@ -14,4 +15,4 @@ function clean_explode($input, $separator) {
+     return explode($separator, $input);
+ }
+ 
+-?>
+\ No newline at end of file
++?>
+diff --git a/index.php b/index.php
+index 8cb04a7..d46a4aa 100755
+--- a/index.php
++++ b/index.php
+@@ -14,9 +14,11 @@ include_once 'controller.inc.php';
+         <script>
+             var selectedProduct;
+             function toggleLocales(chk) {
+-                if (chk.checked == 1)
+-                {document.getElementById('locales').style.display = 'none';}
+-                else {document.getElementById('locales').style.display = 'block';}
++                if (chk.checked == 1) {
++                    document.getElementById('locales').style.display = 'none';
++                } else {
++                    document.getElementById('locales').style.display = 'block';
++                }
+             }
+             function updateProduct() {
+                 var blah = document.getElementById('product-select').selectedIndex;
+@@ -24,7 +26,7 @@ include_once 'controller.inc.php';
+                 updateComponent();
+                 updateVersion();
+             }
+-                            
++
+             function updateComponent() {
+                 var tempArray = component[selectedProduct];
+                 var compSelect = document.getElementById('component-select');
+@@ -68,14 +70,14 @@ include_once 'controller.inc.php';
+             </ul>
+             <br>
+         </div>
+-        
++
+         <div id="main-content">
+             <div class="main-input" style="width: 550px;">
+                 <h2>Bugzilla C3PO</h2>
+                 <form name="bugzilla" action="bugsfiled.php" method="post">
+                     <div><span class="text">Username:</span><span><input type="text" name="username" /></span></div>
+                     <div><span class="text">Password:</span><span><input type="password" name="pwd" /></span></div>
+-                        
++
+                     <div>
+                         <span class="text">Product:</span>
+                         <span><select id="product-select" name="product" onchange="updateProduct()">
+@@ -90,13 +92,13 @@ include_once 'controller.inc.php';
+                     <div>
+                         <span class="text">Component:</span>
+                         <span><select id="component-select" name="component">
+-                            <option value="null">Select component</option>                                
++                            <option value="null">Select component</option>
+                         </select></span>
+                     </div>
+                     <div>
+                         <span class="text">Version:</span>
+                         <span><select id="version-select" name="version">
+-                            <option value="null">Select version</option>                                
++                            <option value="null">Select version</option>
+                         </select></span>
+                     </div>
+ 
+@@ -124,5 +126,5 @@ include_once 'controller.inc.php';
+         </div>
+     </body>
+ 
+-    
+-</html>
+\ No newline at end of file
++
++</html>
+diff --git a/langconfig.php b/langconfig.php
+index 846a4a4..eddd75c 100755
+--- a/langconfig.php
++++ b/langconfig.php
+@@ -8,14 +8,13 @@ $full_languages = array(
+     'bg',
+     'bn-IN',
+     'bn-BD',
++    'br',
+     'ca',
+     'cs',
+     'cy',
+     'da',
+     'de',
+     'el',
+-    'en-GB',
+-    'en-US',
+     'eo',
+     'es-AR',
+     'es-ES',
+@@ -40,7 +39,7 @@ $full_languages = array(
+     'id',
+     'is',
+     'it',
+-    'ja',
++    //'ja',
+     'ka',
+     'kk',
+     'kn',
+@@ -78,5 +77,6 @@ $full_languages = array(
+     'vi',
+     'zh-CN',
+     'zh-TW',
++    //'zu',
+ );
+-?>
+\ No newline at end of file
++?>
