@@ -98,3 +98,8 @@ $bugzilla_locales = array(
     'zh-TW' => 'Chinese (Traditional)',
     'zu'    => 'Zulu',
 );
+
+// Mozilla Localization product has divergent component names vs cf_locales on www.mozilla.org
+$bugzilla_software_locales = $bugzilla_locales;
+$bugzilla_software_locales['es-ES'] = 'Spanish';
+$bugzilla_software_locales['pt-BR'] = 'Portuguese (Brazil)';

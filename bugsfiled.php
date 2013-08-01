@@ -152,13 +152,14 @@ foreach ($locales as $key => $shortcode) {
 
 
     if ($xml_data_create['product'] == 'Mozilla Localizations') {
-        $xml_data_create['component'] = $xml_data_create['cf_locale'];
+        $xml_data_create['component'] = $shortcode . ' / ' . $bugzilla_software_locales[$shortcode];
     }
     // Make the request to file a bug
     $request = xmlrpc_encode_request("Bug.create", $xml_data_create); // create a request for filing bugs
     curl_setopt($curl_start, CURLOPT_POSTFIELDS, $request);
     curl_setopt($curl_start, CURLOPT_COOKIEFILE, $cookie);
     $buglist_array_item = xmlrpc_decode(curl_exec($curl_start)); // Get the ID of the filed bug
+    //~ var_dump($buglist_array_item);
 
     if (isset($_POST['tag'])) {
         $tag = strip_tags($_POST['tag']);
