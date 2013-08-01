@@ -1,5 +1,4 @@
 <?php
-
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -35,8 +34,9 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-function dashboardItem($locale, $bugnumber, $description, $tag='') {
 
+function dashboardItem($locale, $bugnumber, $description, $tag='')
+{
     $value = <<<VALUE
 
 '{$bugnumber}'=> array(
@@ -55,12 +55,11 @@ VALUE;
 
 $time_start = microtime(true);
 
-require_once 'controller.inc.php';
+include_once 'controller.inc.php';
 
-// Populate $locales var with a set of locales
-// we want to file bugs for
+// Populate $locales var with a set of locales we want to file bugs for
 
-if(isset($_POST['all-locales'])) {
+if (isset($_POST['all-locales'])) {
     $locales = $full_languages;
 } elseif (isset($_POST['locales'])) {
     $locales = clean_explode($_POST['locales'], ',');
@@ -71,20 +70,26 @@ if(isset($_POST['all-locales'])) {
 
 sort($locales);
 
-// Summary, or title of the bug;
-// An locale tag in form of "[ab-CD]" will preceed it
+// Summary, or title of the bug; A locale tag in form of "[ab-CD]" will preceed it
 $bugsummary = $_POST['summary'];
 
 // Login info that we'll get via POST
-$xml_data_login = array(
+$xml_data_login =
+[
     'login'    => $_POST['username'],
     'password' => $_POST['pwd'],
     'remember' => 1,
-);
+];
 
 // Data we use for bug creation
 // All data is provided on front page
-$xml_data_create = array (
+
+if ($_POST['version'] == 'null') {
+    $_POST['version'] = 'unspecified';
+}
+
+$xml_data_create =
+[
     'product'           => $_POST['product'],
     'component'         => $_POST['component'],
     'version'           => $_POST['version'],
@@ -93,7 +98,7 @@ $xml_data_create = array (
     'status_whiteboard' => $_POST['whiteboard'],
     'blocked'           => $_POST['blocked'],
     'assigned_to'       => $_POST['assign_to'],
-);
+];
 
 // Set the target for our requests
 $curl_target = $bugzilla_url . 'xmlrpc.cgi';
@@ -102,12 +107,12 @@ $curl_target = $bugzilla_url . 'xmlrpc.cgi';
 $cookie = tempnam('', 'bugzilla-filer');
 
 // Set cURL options
-$curlopts = array(
+$curlopts = [
     CURLOPT_URL            => $curl_target,
     CURLOPT_POST           => true,
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPHEADER     => array( 'Content-Type: text/xml', 'charset=utf-8' )
-);
+    CURLOPT_HTTPHEADER     => ['Content-Type: text/xml', 'charset=utf-8']
+];
 
 // Initialize cURL
 $curl_start = curl_init();
@@ -145,15 +150,17 @@ foreach ($locales as $key => $shortcode) {
     $xml_data_create['description']  = str_replace('{{{lc_locale}}}', strtolower($shortcode), $xml_data_create['description']);
     $xml_data_create['cf_locale']    = $shortcode . ' / ' . $bugzilla_locales[$shortcode];
 
+
+    if ($xml_data_create['product'] == 'Mozilla Localizations') {
+        $xml_data_create['component'] = $xml_data_create['cf_locale'];
+    }
     // Make the request to file a bug
     $request = xmlrpc_encode_request("Bug.create", $xml_data_create); // create a request for filing bugs
     curl_setopt($curl_start, CURLOPT_POSTFIELDS, $request);
     curl_setopt($curl_start, CURLOPT_COOKIEFILE, $cookie);
     $buglist_array_item = xmlrpc_decode(curl_exec($curl_start)); // Get the ID of the filed bug
-/*
-    echo '<br><a href="'. $bugzilla_url . 'show_bug.cgi?id=' . $buglist_array_item['id'] . '">Bug ID=' . $buglist_array_item['id'] . '</a>';
-*/
-    if(isset($_POST['tag'])) {
+
+    if (isset($_POST['tag'])) {
         $tag = strip_tags($_POST['tag']);
     } else {
         $tag = '';

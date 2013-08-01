@@ -1,5 +1,5 @@
 <?php
-include_once 'langconfig.php';
+include_once __DIR__ . '/langconfig.php';
 
 // Switch for the bugzilla installation URL
 // Without this one the script ain't going to work

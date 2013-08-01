@@ -29,7 +29,7 @@ include_once 'controller.inc.php';
                 var tempArray = component[selectedProduct];
                 var compSelect = document.getElementById('component-select');
 
-                for(var i=0;i<tempArray.length;i++){
+                for (var i=0; i<tempArray.length; i++) {
                     var optionItem = document.createElement("option");
                     optionItem.text = tempArray[i];
                     optionItem.value = tempArray[i];
@@ -40,7 +40,7 @@ include_once 'controller.inc.php';
                 var tempArray = version[selectedProduct];
                 var verSelect = document.getElementById('version-select');
 
-                for(var i=0;i<tempArray.length;i++){
+                for (var i=0; i<tempArray.length; i++) {
                     var optionItem = document.createElement("option");
                     optionItem.text = tempArray[i];
                     optionItem.value = tempArray[i];
@@ -69,7 +69,7 @@ include_once 'controller.inc.php';
                             <option value="null">Select a product</option>
                             <script>
                                 for(var product in component) {
-                                    document.write('<option value=' + product + '>' + product + '</option>');
+                                    document.write('<option value="' + product + '">' + product + '</option>');
                                 }
                             </script>
                         </select>
