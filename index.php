@@ -98,6 +98,9 @@ include_once 'controller.inc.php';
                         <input type="checkbox" name="tag" value="URGENT" />
                         <label>URGENT</label>
 
+                        <input type="checkbox" name="mococonfidential" value="confidential" />
+                        <label>Mozilla Corp. confidential</label>
+
                     </fieldset>
 
                     <fieldset>

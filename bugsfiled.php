@@ -100,6 +100,10 @@ $xml_data_create =
     'assigned_to'       => $_POST['assign_to'],
 ];
 
+if (isset($_POST['mococonfidential']) && $_POST['mococonfidential'] == 'confidential') {
+    $xml_data_create['groups'] = 'mozilla-corporation-confidential';
+}
+
 // Set the target for our requests
 $curl_target = $bugzilla_url . 'xmlrpc.cgi';
 
