@@ -98,6 +98,7 @@ $xml_data_create =
     'status_whiteboard' => $_POST['whiteboard'],
     'blocked'           => $_POST['blocked'],
     'assigned_to'       => $_POST['assign_to'],
+    'cc'                => $_POST['cc'],
 ];
 
 if (isset($_POST['mococonfidential']) && $_POST['mococonfidential'] == 'confidential') {

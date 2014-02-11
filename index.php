@@ -91,6 +91,7 @@ include_once 'controller.inc.php';
                         <label class="text">Assign to:  </label><input type="text" name="assign_to" /><br/>
                         <label class="text">Blocks:     </label><input type="text" name="blocked" /><br/>
                         <label class="text">Whiteboard: </label><input type="text" name="whiteboard" /><br/>
+                        <label class="text">CC:         </label><input type="text" name="cc" /><br/>
                         <label class="text">URL:        </label><input type="text" name="url" /><br/>
                         <label class="text">List of locales:</label><input id="locales" type="text" name="locales" /><br/>
                         <input onclick="toggleLocales(this);" type="checkbox" name="all-locales" value="all" />
